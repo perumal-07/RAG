@@ -3,12 +3,12 @@
 A document question-answering application that combines a FastAPI backend,
 Streamlit frontend, Ollama models, LangChain, and ChromaDB.
 
-Upload documents, index their contents, and ask questions about the
-information they contain.
+Attach documents directly to the chat input, index their contents, and ask
+questions about the information they contain.
 
 ## Features
 
-- Upload and index PDF, DOCX, TXT, Markdown, CSV, JSON, HTML, and RTF files.
+- Attach and index PDF, DOCX, TXT, Markdown, CSV, JSON, HTML, and RTF files.
 - Ask questions through a Streamlit chat interface.
 - Retrieve relevant document chunks from ChromaDB.
 - Generate answers with an Ollama chat model.
@@ -64,7 +64,8 @@ python -m streamlit run app/frontend.py
 ```
 
 Open the Streamlit URL shown in the terminal, normally
-http://localhost:8501.
+http://localhost:8501. Attach documents with the paperclip control in the
+chat input, then send a question about their contents.
 
 
 ### Unsupported document

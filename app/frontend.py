@@ -29,78 +29,9 @@ API_URL = "http://127.0.0.1:8000"
 
 with st.sidebar:
 
-    # Document upload section
-
-    st.subheader("📄 Knowledge Base")
-
-    uploaded_document = st.file_uploader(
-        "Upload a document",
-        type=["pdf", "docx", "txt", "md", "csv", "json", "html", "htm", "rtf"]
-    )
-
-    if st.button(
-        "Upload and Process Document",
-        disabled=uploaded_document is None,
-        use_container_width=True
-    ):
-
-        if uploaded_document is not None:
-
-            file_data = uploaded_document.getvalue()
-
-            if len(file_data) > 10 * 1024 * 1024:
-
-                st.error("Documents must be 10 MB or smaller.")
-
-            else:
-
-                try:
-
-                    with st.spinner(
-                        "Processing document and generating embeddings..."
-                    ):
-
-                        response = requests.post(
-                            f"{API_URL}/upload",
-                            files={
-                                "file": (
-                                    uploaded_document.name,
-                                    file_data,
-                                    uploaded_document.type or "application/octet-stream"
-                                )
-                            },
-                            timeout=API_TIMEOUT
-                        )
-
-                        response.raise_for_status()
-
-                        result = response.json()
-
-                    st.success("Document uploaded and indexed successfully!")
-
-                    st.write(
-                        "Chunks indexed:",
-                        result["chunks_indexed"]
-                    )
-
-                    st.write(
-                        "File:",
-                        result["filename"]
-                    )
-
-                except requests.RequestException as error:
-
-                    st.error(
-                        f"Document upload failed: {error}"
-                    )
-
-    st.divider()
-
-    # Clear conversation button
-
     if st.button(
         "🗑️ Clear Chat",
-        use_container_width=True
+        width="stretch"
     ):
 
         st.session_state.messages = [
@@ -141,16 +72,71 @@ for message in st.session_state.messages:
 
         st.markdown(message["content"])
 
-# 6. CUSTOMER CHAT INPUT
+# 6. CHAT INPUT
 
-question = st.chat_input(
-    "Ask a question..."
+submission = st.chat_input(
+    "Ask a question or attach a document...",
+    accept_file="multiple",
+    file_type=["pdf", "docx", "txt", "md", "csv", "json", "html", "htm", "rtf"]
 )
 
 
-# 7. SEND QUESTION TO FASTAPI
+# 7. PROCESS CHAT INPUT
 
-if question:
+if submission:
+
+    question = submission.text.strip()
+    uploaded_documents = submission.files
+
+    for uploaded_document in uploaded_documents:
+
+        file_data = uploaded_document.getvalue()
+
+        if len(file_data) > 10 * 1024 * 1024:
+            st.error(
+                f"{uploaded_document.name} is larger than 10 MB."
+            )
+            continue
+
+        try:
+
+            with st.status(
+                f"Processing {uploaded_document.name}...",
+                expanded=False
+            ) as upload_status:
+
+                response = requests.post(
+                    f"{API_URL}/upload",
+                    files={
+                        "file": (
+                            uploaded_document.name,
+                            file_data,
+                            uploaded_document.type or "application/octet-stream"
+                        )
+                    },
+                    timeout=API_TIMEOUT
+                )
+
+                response.raise_for_status()
+                response.json()
+
+                upload_status.update(
+                    label=f"{uploaded_document.name} is ready",
+                    state="complete"
+                )
+
+        except requests.RequestException as error:
+
+            upload_status.update(
+                label=f"Could not process {uploaded_document.name}",
+                state="error"
+            )
+            st.error(
+                f"Document upload failed for {uploaded_document.name}: {error}"
+            )
+
+    if not question:
+        st.stop()
 
     # Display customer message
 
