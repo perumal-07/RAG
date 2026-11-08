@@ -1,0 +1,31 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+
+# Local vector database and uploaded documents
+chroma_db/
+data/knowledge_base/*
+!data/knowledge_base/.gitkeep
+
+# Streamlit and application artifacts
+.streamlit/secrets.toml
+*.log
+*.tmp
+*.temp
+
+# IDE and operating-system files
+.vscode/*
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
